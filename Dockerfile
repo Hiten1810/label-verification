@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ocr.py checkers.py app.py ./
 COPY static ./static
 
-ENV PORT=8000
+ENV PORT=8000 \
+    OMP_THREAD_LIMIT=1
 EXPOSE 8000
 # Azure App Service reads WEBSITES_PORT (set it to 8000); Render injects PORT.
 CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]

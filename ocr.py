@@ -8,6 +8,11 @@ import os
 import shutil
 import sys
 
+# Tesseract spawns one OpenMP thread per CPU core. On a small or throttled host (a cheap
+# container) those threads fight over little CPU time and OCR gets several times slower.
+# One thread is faster there and costs almost nothing on a big machine for a single label.
+os.environ.setdefault("OMP_THREAD_LIMIT", "1")
+
 import pytesseract
 from PIL import Image, ImageOps, ImageStat, UnidentifiedImageError
 
