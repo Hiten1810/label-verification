@@ -10,6 +10,8 @@ The label is read **entirely offline**. Tesseract OCR runs as a local process an
 
 **Live demo:** https://label-verification.onrender.com (hosted on Render's free tier with a fraction of a CPU: expect about 3–5 seconds per label there, under 1 second on a normal machine, and up to a minute for the first load after the site has been idle)
 
+**Batch note:** the free host is slow (about 4 seconds per label), so a 300-label batch takes 15–20 minutes there. A normal machine is roughly 15–20 times faster; to see the real speed, run it locally or try a smaller batch.
+
 ## Run it locally
 
 Requires Python 3.12 and [Tesseract](https://github.com/UB-Mannheim/tesseract/wiki) (Windows) / `apt install tesseract-ocr` (Linux) / `brew install tesseract` (macOS).
@@ -67,6 +69,13 @@ The app is deployed on [Render](https://render.com) from the `Dockerfile` in thi
    - **Government warning**: compared word for word against the statutory text (27 CFR 16.21). `GOVERNMENT WARNING:` must be in capitals with the colon. A change in wording fails. A single-character difference that looks like an OCR slip is a review, not a fail.
 4. **Overall** status is the worst field status.
 5. **Batch** (`batch.py`): the CSV and ZIP are validated, then labels are checked a few at a time in a background thread (each OCR is single-threaded, so several run side by side). The page polls for progress. File names in the CSV are matched to images in the ZIP ignoring case and folders. One bad row (missing image, unreadable image, blank cell) is reported on its own and never stops the rest. Limits: 500 labels, 100 MB ZIP, 10 MB per image. Results are held in server memory for an hour and the uploaded images are deleted as soon as the batch finishes.
+
+## How it was tested
+
+- **75 automated tests** (`pytest -v`): the matching rules for every field, the API and its error messages, image straightening, and batch upload. A few run real OCR on generated labels.
+- **Sample labels** (`python generate_samples.py`): a good label, labels with one deliberate mistake each, and poor "photos" (tilted, blurred, low contrast, heavy compression, very large, glare). Results were checked by hand in the browser.
+- **Offline check**: with Wi-Fi turned off, both the one-label page and the batch page work normally, because nothing leaves the machine.
+- **Fresh clone**: the repository was cloned into an empty folder, set up from `requirements.txt`, and passed all tests.
 
 ## Assumptions
 
