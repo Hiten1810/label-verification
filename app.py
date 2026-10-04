@@ -12,6 +12,7 @@ from pathlib import Path
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
+import batch
 import ocr
 from checkers import overall_status, verify_label
 
@@ -87,3 +88,28 @@ def verify(
         "ocr_text": text.strip(),
         "seconds": round(elapsed, 2),
     }
+
+
+# ---- batch: many labels at once --------------------------------------------------------
+
+@app.post("/api/batch")
+def batch_start(applications: UploadFile = File(...), images_zip: UploadFile = File(...)):
+    """Start checking a CSV of applications against a ZIP of label images."""
+    if not ocr.tesseract_available():
+        raise HTTPException(503, "The text-reading engine isn't available on the server.")
+    csv_bytes = applications.file.read(batch.MAX_CSV_BYTES + 1)
+    try:
+        rows, folder, zip_path, members, warnings = batch.prepare(csv_bytes, images_zip.file)
+    except batch.BatchError as e:
+        raise HTTPException(400, str(e))
+    job = batch.start_job(rows, folder, zip_path, members, warnings)
+    return {"job_id": job.id, "total": job.total, "warnings": warnings}
+
+
+@app.get("/api/batch/{job_id}")
+def batch_progress(job_id: str, since: int = 0):
+    """Progress and finished rows. `since` = how many rows the page already has."""
+    job = batch.get_job(job_id)
+    if job is None:
+        raise HTTPException(404, "This batch is no longer on the server. Please run it again.")
+    return job.snapshot(max(since, 0))

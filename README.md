@@ -33,13 +33,17 @@ python generate_samples.py
 
 This writes `samples/` with a good label, labels with deliberate errors (title-case warning, missing colon, reworded warning, wrong ABV, proof mismatch, missing warning), and poor-quality "photos" (tilted, blurred, low contrast, heavy JPEG compression, 4000 px, glare), plus `blank.png` and `notes.txt` for error handling. The good label matches these application values: `OLD TOM DISTILLERY`, `Kentucky Straight Bourbon Whiskey`, `45`, `750 mL`. The page has a "Fill in sample values" link.
 
+### Check many labels at once
+
+Open the **Many labels** tab. Upload a CSV (columns `filename, brand_name, class_type, abv, net_contents`, one row per label) and a ZIP of the label images. Progress shows as labels finish, results list problems first, and **Download results (CSV)** saves a spreadsheet. A ready-made example is written to `samples/batch_demo/` (`applications.csv` and `labels.zip`; it includes a mix of passes, reviews, failures, an unreadable image and a missing file).
+
 ### Run the tests
 
 ```
 pytest -v
 ```
 
-55 tests. The few that run real OCR are skipped automatically if Tesseract is not installed.
+75 tests. The few that run real OCR are skipped automatically if Tesseract is not installed.
 
 ### Docker
 
@@ -62,6 +66,7 @@ The app is deployed on [Render](https://render.com) from the `Dockerfile` in thi
    - **Net contents**: normalizes mL, cL, L and fl oz before comparing (1% tolerance).
    - **Government warning**: compared word for word against the statutory text (27 CFR 16.21). `GOVERNMENT WARNING:` must be in capitals with the colon. A change in wording fails. A single-character difference that looks like an OCR slip is a review, not a fail.
 4. **Overall** status is the worst field status.
+5. **Batch** (`batch.py`): the CSV and ZIP are validated, then labels are checked a few at a time in a background thread (each OCR is single-threaded, so several run side by side). The page polls for progress. File names in the CSV are matched to images in the ZIP ignoring case and folders. One bad row (missing image, unreadable image, blank cell) is reported on its own and never stops the rest. Limits: 500 labels, 100 MB ZIP, 10 MB per image. Results are held in server memory for an hour and the uploaded images are deleted as soon as the batch finishes.
 
 ## Assumptions
 
@@ -77,7 +82,7 @@ The app is deployed on [Render](https://render.com) from the `Dockerfile` in thi
 - **Extra text on the same line** as a field may produce a review where a human would say pass.
 - **Only four fields are checked** (brand, class/type, ABV, net contents) plus the government warning. Bottler name and address and country of origin are not verified.
 - **Wine and beer** rules (such as ABV exemptions and different statements) are not modeled.
-- **Not done**: batch upload (200–300 labels), authentication, and a persistent history of results. Batch mode is the natural next step: accept a CSV plus a ZIP of images and return a summary table.
+- **Not done**: authentication and a persistent history of results. Batch results live in memory on a single server process, so they are lost if the server restarts (the page says so and the batch can be re-run). A production version would use a job queue and storage.
 - Tesseract was chosen over a cloud OCR or a vision model because the brief forbids outbound connections. The trade-off is lower accuracy on hard photos.
 
 ## Tools

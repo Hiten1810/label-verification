@@ -9,7 +9,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ocr.py checkers.py app.py ./
+COPY ocr.py checkers.py batch.py app.py ./
 COPY static ./static
 
 ENV PORT=8000 \

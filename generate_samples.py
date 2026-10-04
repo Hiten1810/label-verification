@@ -81,6 +81,27 @@ def add_glare(img: Image.Image) -> Image.Image:
     return Image.composite(Image.new("RGB", img.size, "white"), img, mask)
 
 
+def make_batch_demo():
+    """A ready-to-upload batch: applications.csv + labels.zip (mixed good, wrong and unreadable)."""
+    import zipfile
+    folder = os.path.join(OUT, "batch_demo")
+    os.makedirs(folder, exist_ok=True)
+    images = ["good.png", "photo_rotated_5deg.png", "photo_blurred.png", "photo_low_contrast.png",
+              "label_says_40.png", "proof_mismatch.png", "warning_titlecase.png",
+              "warning_missing.png", "blank.png"]
+    with zipfile.ZipFile(os.path.join(folder, "labels.zip"), "w") as zf:
+        for name in images:
+            zf.write(os.path.join(OUT, name), name)
+    good = (BRAND, CLASS_TYPE, "45", NET)
+    rows = [(name, *good) for name in images]
+    rows[2] = ("photo_blurred.png", "Old Tom Distillery", CLASS_TYPE, "45", NET)   # case only -> review
+    rows.append(("not_in_the_zip.png", *good))                                     # missing image -> error
+    with open(os.path.join(folder, "applications.csv"), "w", encoding="utf-8-sig", newline="") as f:
+        f.write("filename,brand_name,class_type,abv,net_contents\r\n")
+        for r in rows:
+            f.write(",".join(r) + "\r\n")
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     save = lambda im, name, **kw: im.save(os.path.join(OUT, name), **kw)
@@ -114,7 +135,8 @@ def main():
     with open(os.path.join(OUT, "notes.txt"), "w") as f:
         f.write("This is not an image.\n")
 
-    print(f"Wrote {len(os.listdir(OUT))} files to ./{OUT}/")
+    make_batch_demo()
+    print(f"Wrote {len(os.listdir(OUT))} files to ./{OUT}/  (batch demo is in ./{OUT}/batch_demo/)")
 
 
 if __name__ == "__main__":
