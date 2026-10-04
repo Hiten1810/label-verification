@@ -8,7 +8,7 @@ A small web app that checks an alcohol label image against the data in an applic
 
 The label is read **entirely offline**. Tesseract OCR runs as a local process and the app makes no outbound network calls.
 
-**Live demo:** `<add deployed URL here>`
+**Live demo:** https://label-verification.onrender.com (hosted on Render's free tier with a fraction of a CPU: expect about 3–5 seconds per label there, under 1 second on a normal machine, and up to a minute for the first load after the site has been idle)
 
 ## Run it locally
 
@@ -48,10 +48,14 @@ docker build -t label-check .
 docker run -p 8000:8000 label-check
 ```
 
+## Deployment
+
+The app is deployed on [Render](https://render.com) from the `Dockerfile` in this repo (Docker runtime, free instance). The image installs Tesseract with `apt` and starts `uvicorn`; the port comes from the `PORT` environment variable. The same image can run on any container host (for example Azure App Service for Containers) with no code changes. Nothing is stored: uploaded images are processed in memory and discarded.
+
 ## How it works
 
 1. **Preprocess** (`ocr.py`, Pillow only): respect the phone-rotation flag, grayscale, auto-contrast, downscale very large photos, and straighten tilted photos (a projection-profile search over about ±15°).
-2. **OCR**: Tesseract via `pytesseract`. A throwaway OCR runs at startup so the first real request is not slow. Typical time is 0.2–0.7 s per label.
+2. **OCR**: Tesseract via `pytesseract`. A throwaway OCR runs at startup so the first real request is not slow. Tesseract is limited to one thread (`OMP_THREAD_LIMIT=1`), which is much faster on small or shared hosts and gives identical text. Typical time is 0.2–1 s per label on a normal machine.
 3. **Check each field** (`checkers.py`, pure functions, easy to test):
    - **Brand and class/type**: whole-word match. An exact match passes. A match that differs only in capitalization or punctuation, a near match (fuzzy, 90+), or a label line that has extra words (for example `OLD TOM` vs `OLD TOM DISTILLERY`) goes to review. Anything else fails and shows the closest text found.
    - **ABV**: parses `45% Alc./Vol.`, `ALC. 45% BY VOL.`, `45% ABV` and similar. If a proof is printed, it must equal 2 × ABV, otherwise review.
@@ -71,7 +75,8 @@ docker run -p 8000:8000 label-check
 - **Glare or heavy reflections** over text can defeat OCR. In that case the app fails or asks for review rather than guessing.
 - **Tesseract's built-in dictionary** can silently correct a misspelling on a label (for example `machlnery` read as `machinery`), so a real typo on a label can pass.
 - **Extra text on the same line** as a field may produce a review where a human would say pass.
-- **Wine and beer** rules (such as ABV exemptions and different statements) are not modeled. Only the four fields above are checked.
+- **Only four fields are checked** (brand, class/type, ABV, net contents) plus the government warning. Bottler name and address and country of origin are not verified.
+- **Wine and beer** rules (such as ABV exemptions and different statements) are not modeled.
 - **Not done**: batch upload (200–300 labels), authentication, and a persistent history of results. Batch mode is the natural next step: accept a CSV plus a ZIP of images and return a summary table.
 - Tesseract was chosen over a cloud OCR or a vision model because the brief forbids outbound connections. The trade-off is lower accuracy on hard photos.
 
