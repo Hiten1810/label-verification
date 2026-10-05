@@ -8,9 +8,11 @@ A small web app that checks an alcohol label image against the data in an applic
 
 The label is read **entirely offline**. Tesseract OCR runs as a local process and the app makes no outbound network calls.
 
-**Live demo:** https://label-verification.onrender.com (hosted on Render's free tier with a fraction of a CPU: expect about 3–5 seconds per label there, under 1 second on a normal machine, and up to a minute for the first load after the site has been idle)
+**Live demo:** https://label-verification.onrender.com (hosted on Render's free tier, which gives the app only 0.1 of a CPU and 512 MB of memory: expect about 3–5 seconds per label there, under 1 second on a normal machine, and up to a minute for the first load after the site has been idle)
 
-**Batch note:** the free host is slow (about 4 seconds per label), so a 300-label batch takes 15–20 minutes there. A normal machine is roughly 15–20 times faster; to see the real speed, run it locally or try a smaller batch.
+**Batch note:** because the free host has only 0.1 CPU, it is slow (about 4 seconds per label), so the 10-label demo batch takes about 30–40 seconds and a 300-label batch takes 15–20 minutes there. A normal machine is roughly 15–20 times faster; to see the real speed, run it locally or try a smaller batch.
+
+For the approach, tools used and assumptions in one page, see [APPROACH.md](APPROACH.md).
 
 ## Run it locally
 
@@ -35,7 +37,7 @@ python generate_samples.py
 
 This writes `samples/` with a good label, labels with deliberate errors (title-case warning, missing colon, reworded warning, wrong ABV, proof mismatch, missing warning), and poor-quality "photos" (tilted, blurred, low contrast, heavy JPEG compression, 4000 px, glare), plus `blank.png` and `notes.txt` for error handling. The good label matches these application values: `OLD TOM DISTILLERY`, `Kentucky Straight Bourbon Whiskey`, `45`, `750 mL`. The page has a "Fill in sample values" link.
 
-### Check multiple labels at once
+### Check many labels at once
 
 Open the **Multiple labels (Batch)** tab. Upload a CSV (columns `filename, brand_name, class_type, abv, net_contents`, one row per label) and a ZIP of the label images. Progress shows as labels finish, results list problems first, and **Download results (CSV)** saves a spreadsheet. A ready-made example is written to `samples/batch_demo/` (`applications.csv` and `labels.zip`; it includes a mix of passes, reviews, failures, an unreadable image and a missing file).
 
