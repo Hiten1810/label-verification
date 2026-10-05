@@ -88,7 +88,7 @@
 
   <div class="tabs" role="tablist" aria-label="How many labels?">
     <button class="tab" role="tab" id="tab-single" aria-selected="true" aria-controls="single">One label</button>
-    <button class="tab" role="tab" id="tab-batch" aria-selected="false" aria-controls="batch">Many labels</button>
+    <button class="tab" role="tab" id="tab-batch" aria-selected="false" aria-controls="batch">Multiple labels (Batch)</button>
   </div>
 
   <div id="single" role="tabpanel" aria-labelledby="tab-single">
@@ -113,7 +113,6 @@
     <input id="image" name="image" type="file" accept="image/*">
     <img id="preview" alt="Preview of the chosen label">
 
-    <p class="step" style="margin-top:24px">Step 3: Check it</p>
     <button class="primary" id="go" type="submit">Check Label</button>
     <p style="margin:12px 0 0"><button class="link" type="button" id="sample">Fill in sample values</button></p>
   </form>
@@ -144,7 +143,6 @@
       <input id="zip" type="file" accept=".zip,application/zip,application/x-zip-compressed" aria-label="ZIP file of label images">
       <p class="note">The file names in the CSV must match the image names in the ZIP. Up to 500 labels.</p>
 
-      <p class="step" style="margin-top:24px">Step 4: Check them all</p>
       <button class="primary" id="bgo" type="submit">Check All Labels</button>
     </form>
 

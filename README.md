@@ -35,9 +35,9 @@ python generate_samples.py
 
 This writes `samples/` with a good label, labels with deliberate errors (title-case warning, missing colon, reworded warning, wrong ABV, proof mismatch, missing warning), and poor-quality "photos" (tilted, blurred, low contrast, heavy JPEG compression, 4000 px, glare), plus `blank.png` and `notes.txt` for error handling. The good label matches these application values: `OLD TOM DISTILLERY`, `Kentucky Straight Bourbon Whiskey`, `45`, `750 mL`. The page has a "Fill in sample values" link.
 
-### Check many labels at once
+### Check multiple labels at once
 
-Open the **Many labels** tab. Upload a CSV (columns `filename, brand_name, class_type, abv, net_contents`, one row per label) and a ZIP of the label images. Progress shows as labels finish, results list problems first, and **Download results (CSV)** saves a spreadsheet. A ready-made example is written to `samples/batch_demo/` (`applications.csv` and `labels.zip`; it includes a mix of passes, reviews, failures, an unreadable image and a missing file).
+Open the **Multiple labels (Batch)** tab. Upload a CSV (columns `filename, brand_name, class_type, abv, net_contents`, one row per label) and a ZIP of the label images. Progress shows as labels finish, results list problems first, and **Download results (CSV)** saves a spreadsheet. A ready-made example is written to `samples/batch_demo/` (`applications.csv` and `labels.zip`; it includes a mix of passes, reviews, failures, an unreadable image and a missing file).
 
 ### Run the tests
 
